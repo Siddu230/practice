@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backend Roadmap — Django/DRF in 8 Weeks</title>
+<style>
+  :root{
+    --ink:#13212b;
+    --ink-soft:#5a6b76;
+    --ink-faint:#8a9aa3;
+    --paper:#f3efe6;
+    --card:#fbfaf6;
+    --line:#dcd7c9;
+    --terminal:#0f2b27;
+    --accent:#0b6e4f;      /* deep terminal green */
+    --accent-soft:#e0efe6;
+    --amber:#b5651d;
+    --done:#0b6e4f;
+    --shadow:0 1px 2px rgba(19,33,43,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"SF Mono",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,monospace;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding:0 1rem 5rem;
+  }
+  .wrap{max-width:780px;margin:0 auto}
+
+  /* ---- Hero ---- */
+  header{padding:3.5rem 0 2rem;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(2.1rem,6vw,3.3rem);
+    line-height:1.05;font-weight:700;letter-spacing:-.02em;
+    margin:.6rem 0 .4rem;
+  }
+  h1 em{font-style:italic;color:var(--accent)}
+  .sub{color:var(--ink-soft);font-size:.92rem;max-width:46ch}
+
+  /* ---- Progress dashboard ---- */
+  .dash{
+    margin-top:2rem;background:var(--terminal);color:#cfe8dd;
+    border-radius:8px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);
+  }
+  .dash-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
+  .dash-label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#6fae97}
+  .dash-count{font-size:1.05rem;color:#eafff6}
+  .dash-count b{color:#fff;font-size:1.3rem}
+  .bar{height:10px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-top:.8rem}
+  .bar-fill{height:100%;width:0;background:#3ddc97;border-radius:6px;transition:width .4s ease}
+  .dash-foot{font-size:.74rem;color:#6fae97;margin-top:.7rem}
+  .reset{
+    background:none;border:1px solid #2f5a4e;color:#9fd3bf;font:inherit;font-size:.72rem;
+    padding:.3rem .7rem;border-radius:5px;cursor:pointer;letter-spacing:.04em
+  }
+  .reset:hover{background:#163b33;color:#eafff6}
+
+  /* ---- Week accordion ---- */
+  .week{
+    background:var(--card);border:1px solid var(--line);border-radius:9px;
+    margin-top:1rem;box-shadow:var(--shadow);overflow:hidden;
+  }
+  .week-head{
+    width:100%;text-align:left;background:none;border:none;font:inherit;cursor:pointer;
+    display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;
+  }
+  .week-head:hover{background:#f6f3ea}
+  .wk-num{
+    flex:0 0 auto;width:42px;height:42px;border-radius:7px;
+    background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:1.05rem;font-family:Georgia,serif;
+  }
+  .week.done .wk-num{background:var(--accent);color:#fff}
+  .wk-meta{flex:1;min-width:0}
+  .wk-title{font-weight:600;font-size:1rem;color:var(--ink)}
+  .wk-goal{font-size:.78rem;color:var(--ink-soft);margin-top:.15rem}
+  .wk-prog{font-size:.72rem;color:var(--ink-faint);margin-top:.3rem;letter-spacing:.03em}
+  .chev{flex:0 0 auto;color:var(--ink-faint);transition:transform .25s;font-size:.9rem}
+  .week.open .chev{transform:rotate(90deg)}
+
+  .week-body{display:none;padding:0 1.2rem 1.3rem;border-top:1px solid var(--line)}
+  .week.open .week-body{display:block}
+
+  .block{margin-top:1.2rem}
+  .block-label{
+    font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+    font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem
+  }
+  .block-label::before{content:"";width:14px;height:2px;background:var(--accent)}
+
+  ul.learn{list-style:none;display:grid;gap:.3rem}
+  ul.learn li{font-size:.85rem;color:var(--ink);padding-left:1.1rem;position:relative}
+  ul.learn li::before{content:"›";position:absolute;left:0;color:var(--accent);font-weight:700}
+
+  .links{display:grid;gap:.45rem}
+  .lk{
+    display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--ink);
+    border:1px solid var(--line);border-radius:6px;padding:.55rem .75rem;background:#fff;
+    font-size:.83rem;transition:border-color .15s,background .15s
+  }
+  .lk:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .lk .ic{flex:0 0 auto;width:20px;text-align:center;font-size:.9rem}
+  .lk.yt .ic{color:#c0392b}
+  .lk.doc .ic{color:var(--accent)}
+  .lk .arr{margin-left:auto;color:var(--ink-faint);font-size:.8rem}
+
+  .task{
+    display:flex;align-items:flex-start;gap:.65rem;padding:.5rem .65rem;border-radius:6px;
+    cursor:pointer;font-size:.85rem;transition:background .12s
+  }
+  .task:hover{background:#f6f3ea}
+  .task input{
+    appearance:none;-webkit-appearance:none;flex:0 0 auto;width:18px;height:18px;margin-top:.15rem;
+    border:1.5px solid var(--ink-faint);border-radius:4px;cursor:pointer;position:relative;background:#fff
+  }
+  .task input:checked{background:var(--accent);border-color:var(--accent)}
+  .task input:checked::after{
+    content:"✓";position:absolute;top:-2px;left:2px;color:#fff;font-size:.8rem;font-weight:700
+  }
+  .task input:checked ~ span{color:var(--ink-faint);text-decoration:line-through}
+
+  .checkpoint{
+    margin-top:1.2rem;background:var(--accent-soft);border:1px solid #b9dcca;border-radius:7px;padding:.8rem .9rem
+  }
+  .checkpoint .task{padding:0}
+  .cp-tag{font-weight:700;color:var(--accent)}
+
+  footer{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line);
+    font-size:.76rem;color:var(--ink-faint);text-align:center;line-height:1.8}
+  footer code{background:#e7e2d6;padding:.1rem .35rem;border-radius:4px;color:var(--ink-soft)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:520px){
+    header{padding:2.5rem 0 1.5rem}
+    .week-head{gap:.75rem;padding:.9rem}
+    .wk-goal{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">8-week roadmap · ~2.5 hrs/day</div>
+    <h1>Becoming a <em>backend</em> developer</h1>
+    <p class="sub">From beginner Django to a deployed, tested API. One project — the Bookstore API — that grows every week. Tap a week to open it.</p>
+
+    <div class="dash">
+      <div class="dash-top">
+        <div>
+          <div class="dash-label">Progress</div>
+          <div class="dash-count"><b id="done">0</b> / <span id="total">0</span> tasks complete</div>
+        </div>
+        <button class="reset" id="reset">reset all</button>
+      </div>
+      <div class="bar"><div class="bar-fill" id="fill"></div></div>
+      <div class="dash-foot" id="foot">Your progress saves automatically in this browser.</div>
+    </div>
+  </header>
+
+  <main id="weeks"></main>
+
+  <footer>
+    Built as a single file — keep it in your repo, open it anytime by double-clicking.<br>
+    Progress is stored in this browser only (<code>localStorage</code>). Clearing site data or switching browser/device starts fresh.
+  </footer>
+</div>
+
+<script>
+const DATA=[
+{w:1,title:"Django & DRF core",goal:"Solid Django base + a real REST API layer",
+ learn:["ORM: querysets, filtering, F() & Q()","select_related vs prefetch_related","Serializers: nested reads, ID writes, validation","ViewSets, generics, routers","Auth: Token → JWT (simplejwt)","Permissions, pagination, search, filtering"],
+ docs:[["DRF official tutorial","https://www.django-rest-framework.org/tutorial/1-serialization/"],["LearnDjango DRF walkthrough","https://learndjango.com/tutorials/official-django-rest-framework-tutorial-beginners"],["Django docs: queries","https://docs.djangoproject.com/en/stable/topics/db/queries/"]],
+ yt:[["Dennis Ivy — DRF full course","https://www.youtube.com/watch?v=c708Nf0cHrs"],["freeCodeCamp — DRF course","https://www.youtube.com/watch?v=cJveiktaOSQ"],["BugBytes — DRF series","https://www.youtube.com/playlist?list=PL-2EBeDYMIbTLulc9FSoAXhbmXpLq2l5t"]],
+ tasks:["Build Bookstore API: CRUD for books, authors, genres","Add JWT register + login endpoints","Add search + filtering on the book list","Push to GitHub with a README"],
+ check:"You can explain prefetch_related vs select_related, and writes need a JWT while reads don't."},
+{w:2,title:"Databases & ORM mastery",goal:"Stop writing slow queries; know what Postgres does",
+ learn:["Indexes: B-tree, when they help vs hurt","EXPLAIN ANALYZE & reading query plans","The N+1 problem and how to kill it","Transactions, isolation, select_for_update","Normalization vs denormalization"],
+ docs:[["Use The Index, Luke (free book)","https://use-the-index-luke.com/"],["Postgres docs: EXPLAIN","https://www.postgresql.org/docs/current/using-explain.html"],["Django: DB optimization","https://docs.djangoproject.com/en/stable/topics/db/optimization/"]],
+ yt:[["Hussein Nasser — DB internals","https://www.youtube.com/c/HusseinNasser-software-engineering"],["BugBytes — N+1 in Django","https://www.youtube.com/playlist?list=PL-2EBeDYMIbTLulc9FSoAXhbmXpLq2l5t"],["freeCodeCamp — PostgreSQL course","https://www.youtube.com/watch?v=qw--VYLpxG4"]],
+ tasks:["Run EXPLAIN ANALYZE on your slowest query","Find & fix an N+1 in your API","Add a /reports/ endpoint with aggregates","Add DB indexes where they measurably help"],
+ check:"You can take a slow endpoint, prove the bottleneck with EXPLAIN ANALYZE, and make it faster."},
+{w:3,title:"Async, jobs & caching",goal:"Move slow work off the request; cache what's costly",
+ learn:["Celery + Redis: tasks, retries, Beat","When ASGI/async makes sense vs sync","Caching strategies & invalidation","Redis as cache vs broker"],
+ docs:[["Celery + Django first steps","https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html"],["Django: caching framework","https://docs.djangoproject.com/en/stable/topics/cache/"],["TestDriven.io Celery guides","https://testdriven.io/blog/topics/celery/"]],
+ yt:[["Very Academy — Django Celery series","https://www.youtube.com/playlist?list=PLOLrQ9Pn6caw0PjVwymNc64NkUNbZlhFw"],["BugBytes — Celery & Redis","https://www.youtube.com/results?search_query=bugbytes+celery+django"],["Hussein Nasser — caching","https://www.youtube.com/results?search_query=hussein+nasser+caching"]],
+ tasks:["Send a welcome email via a Celery task","Schedule a daily report with Celery Beat","Cache the /reports/ endpoint with Redis","Add a retry policy to a failing task"],
+ check:"A user action triggers a background job without blocking the response, and a repeat report hits the cache."},
+{w:4,title:"Professional API design",goal:"APIs others can trust and integrate against",
+ learn:["Versioning, idempotency, error envelopes","Status codes done right","Auto Swagger/OpenAPI docs","Webhooks: sending & receiving","File uploads & signed URLs"],
+ docs:[["drf-spectacular (Swagger)","https://drf-spectacular.readthedocs.io/"],["Microsoft REST API guidelines","https://github.com/microsoft/api-guidelines"],["DRF: versioning","https://www.django-rest-framework.org/api-guide/versioning/"]],
+ yt:[["ArjanCodes — API design","https://www.youtube.com/c/ArjanCodes"],["BugBytes — drf-spectacular","https://www.youtube.com/results?search_query=bugbytes+drf+spectacular"],["Hussein Nasser — webhooks","https://www.youtube.com/results?search_query=hussein+nasser+webhooks"]],
+ tasks:["Build a 2nd feature: URL shortener or webhook receiver","Add full Swagger docs with drf-spectacular","Add API versioning (v1/)","Implement one incoming webhook endpoint"],
+ check:"Someone could use your Swagger page to call every endpoint without asking you a thing."},
+{w:5,title:"Docker & local infra",goal:"Package the whole stack so it runs anywhere",
+ learn:["Images, containers, volumes, networks","Dockerfile (multi-stage builds)","docker-compose: web + db + redis + worker","Env vars, secrets, .env management"],
+ docs:[["Docker: getting started","https://docs.docker.com/get-started/"],["Docker Compose docs","https://docs.docker.com/compose/"],["TestDriven.io: Dockerizing Django","https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/"]],
+ yt:[["TechWorld with Nana — Docker course","https://www.youtube.com/watch?v=3c-iBn73dDE"],["Very Academy — Django + Docker","https://www.youtube.com/playlist?list=PLOLrQ9Pn6cazjoDEnQzBydUWeGn7izz4Y"],["freeCodeCamp — Docker course","https://www.youtube.com/watch?v=fqMOX6J1hD0"]],
+ tasks:["Write a Dockerfile for the API","Compose web + Postgres + Redis + worker","Make `docker-compose up` boot everything","Move all secrets into env vars"],
+ check:"A fresh clone runs entirely with one `docker-compose up`, no manual setup."},
+{w:6,title:"Testing, quality & security",goal:"Prove it works and isn't trivially exploitable",
+ learn:["pytest-django, fixtures, factory_boy, mocking","Unit vs integration tests, coverage","OWASP basics: injection, CSRF, CORS, secrets","Logging & error tracking (Sentry)"],
+ docs:[["pytest-django docs","https://pytest-django.readthedocs.io/"],["OWASP Top 10","https://owasp.org/www-project-top-ten/"],["Django: security","https://docs.djangoproject.com/en/stable/topics/security/"]],
+ yt:[["BugBytes — pytest for Django","https://www.youtube.com/results?search_query=bugbytes+pytest+django"],["freeCodeCamp — pytest course","https://www.youtube.com/watch?v=cHYq1MRoyI0"],["PyCon — testing Django talks","https://www.youtube.com/results?search_query=pycon+testing+django"]],
+ tasks:["Write tests for one full feature (models + endpoints)","Reach 80%+ coverage on it","Add structured logging","Audit your API against the OWASP Top 10"],
+ check:"Your test suite catches a real regression when you intentionally break a feature."},
+{w:7,title:"Deployment & CI/CD",goal:"Get it live, deploying automatically",
+ learn:["Gunicorn/Uvicorn + static files (WhiteNoise/S3)","Deploy to Render or Railway","GitHub Actions: test + lint + auto-deploy","Running migrations safely in production"],
+ docs:[["Render: deploy Django","https://render.com/docs/deploy-django"],["Railway docs","https://docs.railway.app/"],["GitHub Actions docs","https://docs.github.com/en/actions"]],
+ yt:[["TechWorld with Nana — CI/CD & Actions","https://www.youtube.com/watch?v=R8_veQiYBjI"],["Very Academy — deploy Django","https://www.youtube.com/c/VeryAcademy"],["Deploy Django to Render","https://www.youtube.com/results?search_query=deploy+django+render"]],
+ tasks:["Deploy your API live","Add a GitHub Actions workflow running tests on push","Auto-deploy on merge to main","Put the live URL in your README"],
+ check:"You push to main, CI runs your tests, and the live site updates hands-off."},
+{w:8,title:"System design & interview prep",goal:"Talk backend at scale, and sell your work",
+ learn:["Load balancing, horizontal vs vertical scaling","Replication, sharding, message queues, CDNs","Caching, indexing, REST vs GraphQL, ORM internals","Design: URL shortener, rate limiter, news feed"],
+ docs:[["System Design Primer","https://github.com/donnemartin/system-design-primer"],["ByteByteGo blog","https://blog.bytebytego.com/"],["DRF API guide (review)","https://www.django-rest-framework.org/api-guide/requests/"]],
+ yt:[["Gaurav Sen — system design","https://www.youtube.com/c/GauravSensei"],["ByteByteGo — explainers","https://www.youtube.com/c/ByteByteGo"],["Hussein Nasser — backend eng","https://www.youtube.com/c/HusseinNasser-software-engineering"]],
+ tasks:["Write a design answer for 'design a URL shortener'","Do 3 mock backend interview sets","Polish both project READMEs (screenshots, live link)","Pin both repos on your GitHub profile"],
+ check:"You can whiteboard a URL shortener end-to-end and defend every design choice."}
+];
+
+const KEY="backend_roadmap_v1";
+let state={};
+try{const r=localStorage.getItem(KEY);if(r)state=JSON.parse(r);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+function tid(w,i){return "w"+w+"_t"+i;}
+function cid(w){return "w"+w+"_check";}
+function allIds(){let a=[];DATA.forEach(d=>{d.tasks.forEach((_,i)=>a.push(tid(d.w,i)));a.push(cid(d.w));});return a;}
+function weekIds(d){let a=d.tasks.map((_,i)=>tid(d.w,i));a.push(cid(d.w));return a;}
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function render(){
+  const root=document.getElementById("weeks");
+  root.innerHTML="";
+  DATA.forEach(d=>{
+    const wk=document.createElement("section");
+    wk.className="week";wk.dataset.w=d.w;
+
+    const learn=d.learn.map(x=>`<li>${esc(x)}</li>`).join("");
+    const docs=d.docs.map(x=>`<a class="lk doc" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▤</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
+    const yt=d.yt.map(x=>`<a class="lk yt" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▶</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
+    const tasks=d.tasks.map((t,i)=>{
+      const id=tid(d.w,i);const c=state[id]?"checked":"";
+      return `<label class="task"><input type="checkbox" data-id="${id}" ${c}><span>${esc(t)}</span></label>`;
+    }).join("");
+    const ccheck=state[cid(d.w)]?"checked":"";
+
+    wk.innerHTML=`
+      <button class="week-head" aria-expanded="false">
+        <span class="wk-num">${d.w}</span>
+        <span class="wk-meta">
+          <span class="wk-title">Week ${d.w}: ${esc(d.title)}</span>
+          <span class="wk-goal">${esc(d.goal)}</span>
+          <span class="wk-prog" data-prog="${d.w}"></span>
+        </span>
+        <span class="chev">▶</span>
+      </button>
+      <div class="week-body">
+        <div class="block"><div class="block-label">Learn</div><ul class="learn">${learn}</ul></div>
+        <div class="block"><div class="block-label">Docs &amp; reading</div><div class="links">${docs}</div></div>
+        <div class="block"><div class="block-label">Watch</div><div class="links">${yt}</div></div>
+        <div class="block"><div class="block-label">Practice — tick as you go</div><div>${tasks}</div></div>
+        <div class="checkpoint">
+          <label class="task"><input type="checkbox" data-id="${cid(d.w)}" ${ccheck}>
+          <span><span class="cp-tag">Checkpoint:</span> ${esc(d.check)}</span></label>
+        </div>
+      </div>`;
+    root.appendChild(wk);
+  });
+
+  document.querySelectorAll(".week-head").forEach(h=>{
+    h.addEventListener("click",()=>{
+      const wk=h.closest(".week");
+      const open=wk.classList.toggle("open");
+      h.setAttribute("aria-expanded",open);
+    });
+  });
+  document.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener("change",e=>{
+      const id=e.target.dataset.id;
+      if(e.target.checked)state[id]=true;else delete state[id];
+      save();update();
+    });
+  });
+  update();
+}
+
+function update(){
+  const ids=allIds();
+  const done=ids.filter(i=>state[i]).length;
+  document.getElementById("done").textContent=done;
+  document.getElementById("total").textContent=ids.length;
+  document.getElementById("fill").style.width=Math.round(done/ids.length*100)+"%";
+  const foot=document.getElementById("foot");
+  if(done===ids.length){foot.textContent="Every box ticked. You did the work — go build something real.";}
+  else{foot.textContent="Your progress saves automatically in this browser.";}
+
+  DATA.forEach(d=>{
+    const wids=weekIds(d);
+    const wd=wids.filter(i=>state[i]).length;
+    const el=document.querySelector(`[data-prog="${d.w}"]`);
+    if(el)el.textContent=wd+" / "+wids.length+" done";
+    const wk=document.querySelector(`.week[data-w="${d.w}"]`);
+    if(wk)wk.classList.toggle("done",wd===wids.length);
+  });
+}
+
+document.getElementById("reset").addEventListener("click",()=>{
+  if(confirm("Reset all progress? This clears every checkmark.")){
+    state={};save();
+    document.querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+    update();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
