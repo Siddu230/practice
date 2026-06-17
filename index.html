@@ -1,175 +1,364 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
 <title>Backend Roadmap — Django/DRF in 8 Weeks</title>
 <style>
+  /* ============ THEME TOKENS ============ */
   :root{
-    --ink:#13212b;
-    --ink-soft:#5a6b76;
-    --ink-faint:#8a9aa3;
-    --paper:#f3efe6;
-    --card:#fbfaf6;
-    --line:#dcd7c9;
-    --terminal:#0f2b27;
-    --accent:#0b6e4f;      /* deep terminal green */
-    --accent-soft:#e0efe6;
-    --amber:#b5651d;
-    --done:#0b6e4f;
-    --shadow:0 1px 2px rgba(19,33,43,.06);
+    --bg:#070b10;
+    --bg-2:#0b1219;
+    --glass:rgba(20,30,40,.55);
+    --glass-brd:rgba(255,255,255,.08);
+    --glass-brd-hi:rgba(120,255,210,.35);
+    --ink:#eaf3f0;
+    --ink-soft:#9fb3ad;
+    --ink-faint:#6b7f7a;
+    --accent:#2ee6a6;
+    --accent-2:#34d0ff;
+    --accent-3:#a78bfa;
+    --amber:#ffb454;
+    --danger:#ff6b81;
+    --glow:0 0 0 1px rgba(46,230,166,.25), 0 8px 40px -8px rgba(46,230,166,.35);
+    --shadow:0 20px 50px -25px rgba(0,0,0,.8);
+    --radius:18px;
+    --aurora-1:#0e7c5a;
+    --aurora-2:#1d5fa8;
+    --aurora-3:#5b3fa0;
   }
+  [data-theme="light"]{
+    --bg:#eef2ee;
+    --bg-2:#e3ebe6;
+    --glass:rgba(255,255,255,.72);
+    --glass-brd:rgba(13,40,30,.10);
+    --glass-brd-hi:rgba(11,110,79,.45);
+    --ink:#0f2a20;
+    --ink-soft:#4a6359;
+    --ink-faint:#7d938a;
+    --accent:#0b8f63;
+    --accent-2:#0c7bd1;
+    --accent-3:#7c5cdb;
+    --amber:#c2761a;
+    --danger:#d83a52;
+    --glow:0 0 0 1px rgba(11,143,99,.25), 0 8px 40px -10px rgba(11,143,99,.35);
+    --shadow:0 24px 50px -28px rgba(13,40,30,.45);
+    --aurora-1:#7fe9c4;
+    --aurora-2:#8ec5ff;
+    --aurora-3:#c3b0ff;
+  }
+
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
     font-family:"SF Mono",ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,monospace;
-    background:var(--paper);
+    background:var(--bg);
     color:var(--ink);
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
-    padding:0 1rem 5rem;
+    padding:0;
+    position:relative;
+    overflow-x:hidden;
+    min-height:100vh;
+    transition:background .5s ease,color .5s ease;
   }
-  .wrap{max-width:780px;margin:0 auto}
 
-  /* ---- Hero ---- */
-  header{padding:3.5rem 0 2rem;border-bottom:2px solid var(--ink)}
-  .eyebrow{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  /* ============ ANIMATED AURORA BACKGROUND ============ */
+  .aurora{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+  .aurora::before,.aurora::after{
+    content:"";position:absolute;width:60vmax;height:60vmax;border-radius:50%;
+    filter:blur(90px);opacity:.55;mix-blend-mode:screen;
+    animation:float 22s ease-in-out infinite;
+  }
+  .aurora::before{
+    background:radial-gradient(circle at 30% 30%,var(--aurora-1),transparent 60%);
+    top:-15vmax;left:-10vmax;
+  }
+  .aurora::after{
+    background:radial-gradient(circle at 70% 70%,var(--aurora-2),transparent 60%);
+    bottom:-20vmax;right:-12vmax;animation-delay:-7s;animation-duration:28s;
+  }
+  .aurora i{
+    position:absolute;width:48vmax;height:48vmax;border-radius:50%;
+    background:radial-gradient(circle,var(--aurora-3),transparent 60%);
+    filter:blur(100px);opacity:.4;mix-blend-mode:screen;
+    top:30%;left:40%;animation:float 30s ease-in-out infinite reverse;
+  }
+  [data-theme="light"] .aurora::before,
+  [data-theme="light"] .aurora::after,
+  [data-theme="light"] .aurora i{opacity:.65;mix-blend-mode:multiply}
+  @keyframes float{
+    0%,100%{transform:translate(0,0) scale(1)}
+    33%{transform:translate(8vmax,-4vmax) scale(1.12)}
+    66%{transform:translate(-6vmax,6vmax) scale(.94)}
+  }
+  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  /* ============ APP SHELL ============ */
+  .app{display:grid;grid-template-columns:340px 1fr;height:100vh;overflow:hidden}
+  .sidebar{
+    height:100vh;overflow:hidden;padding:1.3rem 1.2rem 1.3rem;
+    border-right:1px solid var(--glass-brd);background:var(--glass);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    display:flex;flex-direction:column;gap:.9rem;
+  }
+  .content{height:100vh;overflow-y:auto;overflow-x:hidden;padding:2rem 2.4rem;min-width:0;scrollbar-width:thin}
+  .content::-webkit-scrollbar{width:10px}
+  .content::-webkit-scrollbar-thumb{background:var(--glass-brd);border-radius:8px}
+  .content::-webkit-scrollbar-thumb:hover{background:var(--glass-brd-hi)}
+  .side-title{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);
+    padding-left:.2rem;flex:0 0 auto}
+
+  /* ============ TOP BAR ============ */
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:.6rem;font-size:.78rem;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.7)}}
+  .theme-toggle{
+    display:flex;align-items:center;gap:.5rem;background:var(--glass);border:1px solid var(--glass-brd);
+    color:var(--ink);font:inherit;font-size:.74rem;padding:.45rem .8rem;border-radius:999px;cursor:pointer;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:border-color .2s,transform .2s,box-shadow .2s;
+  }
+  .theme-toggle:hover{border-color:var(--glass-brd-hi);transform:translateY(-1px);box-shadow:var(--glow)}
+  .theme-toggle .ti{font-size:1rem;line-height:1}
+
+  /* ============ HERO ============ */
+  header{padding:2rem 0 1rem}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:.5rem;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;padding:.35rem .7rem;border:1px solid var(--glass-brd);
+    border-radius:999px;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  }
   h1{
     font-family:Georgia,"Times New Roman",serif;
-    font-size:clamp(2.1rem,6vw,3.3rem);
-    line-height:1.05;font-weight:700;letter-spacing:-.02em;
-    margin:.6rem 0 .4rem;
+    font-size:clamp(2.3rem,7vw,4rem);
+    line-height:1.02;font-weight:700;letter-spacing:-.02em;
+    margin:1rem 0 .6rem;
   }
-  h1 em{font-style:italic;color:var(--accent)}
-  .sub{color:var(--ink-soft);font-size:.92rem;max-width:46ch}
+  h1 .grad{
+    background:linear-gradient(110deg,var(--accent),var(--accent-2) 45%,var(--accent-3));
+    -webkit-background-clip:text;background-clip:text;color:transparent;font-style:italic;
+    background-size:200% auto;animation:shine 6s linear infinite;
+  }
+  @keyframes shine{to{background-position:200% center}}
+  .sub{color:var(--ink-soft);font-size:.95rem;max-width:52ch}
 
-  /* ---- Progress dashboard ---- */
+  /* ============ PROGRESS DASHBOARD (in sidebar) ============ */
   .dash{
-    margin-top:2rem;background:var(--terminal);color:#cfe8dd;
-    border-radius:8px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);
+    flex:0 0 auto;background:color-mix(in srgb,var(--bg-2) 45%,transparent);border:1px solid var(--glass-brd);
+    border-radius:14px;padding:.9rem 1rem;
+    display:flex;gap:.9rem;align-items:center;position:relative;overflow:hidden;
   }
-  .dash-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap}
-  .dash-label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:#6fae97}
-  .dash-count{font-size:1.05rem;color:#eafff6}
-  .dash-count b{color:#fff;font-size:1.3rem}
-  .bar{height:10px;background:rgba(255,255,255,.12);border-radius:6px;overflow:hidden;margin-top:.8rem}
-  .bar-fill{height:100%;width:0;background:#3ddc97;border-radius:6px;transition:width .4s ease}
-  .dash-foot{font-size:.74rem;color:#6fae97;margin-top:.7rem}
+
+  /* circular ring */
+  .ring{position:relative;flex:0 0 auto;width:72px;height:72px}
+  .ring svg{width:72px;height:72px;transform:rotate(-90deg)}
+  .ring .track{stroke:var(--glass-brd);fill:none;stroke-width:9}
+  .ring .prog{fill:none;stroke-width:9;stroke-linecap:round;stroke:url(#rg);
+    transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 0 6px rgba(46,230,166,.5))}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+  .ring .pct b{font-size:1.05rem;font-weight:700;font-family:Georgia,serif}
+  .ring .pct small{font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:.1rem}
+
+  .dash-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:.05rem}
+  .dash-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .dash-count{font-size:.82rem;color:var(--ink-soft)}
+  .dash-count b{color:var(--ink);font-size:1.1rem;font-family:Georgia,serif}
+  .bar{height:7px;background:var(--glass-brd);border-radius:999px;overflow:hidden;margin-top:.45rem;position:relative}
+  .bar-fill{height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));background-size:200% auto;
+    transition:width .6s cubic-bezier(.4,0,.2,1);animation:shine 4s linear infinite;
+    box-shadow:0 0 12px rgba(46,230,166,.55)}
   .reset{
-    background:none;border:1px solid #2f5a4e;color:#9fd3bf;font:inherit;font-size:.72rem;
-    padding:.3rem .7rem;border-radius:5px;cursor:pointer;letter-spacing:.04em
+    align-self:flex-start;margin-top:.5rem;background:transparent;border:1px solid var(--glass-brd);color:var(--ink-soft);
+    font:inherit;font-size:.64rem;padding:.3rem .7rem;border-radius:999px;cursor:pointer;letter-spacing:.04em;transition:all .2s;white-space:nowrap;
   }
-  .reset:hover{background:#163b33;color:#eafff6}
+  .reset:hover{border-color:var(--danger);color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
 
-  /* ---- Week accordion ---- */
+  /* ============ SIDEBAR WEEK LIST ============ */
+  /* fills remaining sidebar height; scrolls only as a fallback on short screens */
+  .weeklist{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:.5rem;
+    overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-right:2px}
+  .weeklist::-webkit-scrollbar{display:none}
   .week{
-    background:var(--card);border:1px solid var(--line);border-radius:9px;
-    margin-top:1rem;box-shadow:var(--shadow);overflow:hidden;
+    flex:0 0 auto;width:100%;text-align:left;background:color-mix(in srgb,var(--bg-2) 40%,transparent);
+    border:1px solid var(--glass-brd);border-radius:11px;font:inherit;color:inherit;
+    cursor:pointer;display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;position:relative;overflow:hidden;
+    transition:border-color .2s,transform .2s,box-shadow .2s,background .2s;
+    opacity:0;transform:translateY(10px);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;
   }
-  .week-head{
-    width:100%;text-align:left;background:none;border:none;font:inherit;cursor:pointer;
-    display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;
-  }
-  .week-head:hover{background:#f6f3ea}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .week:hover{border-color:var(--glass-brd-hi);transform:translateX(3px)}
+  .week.active{border-color:var(--glass-brd-hi);box-shadow:var(--glow);
+    background:color-mix(in srgb,var(--accent) 11%,var(--glass))}
+  .week.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(var(--accent),var(--accent-2))}
+  .week.done{border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+
   .wk-num{
-    flex:0 0 auto;width:42px;height:42px;border-radius:7px;
-    background:var(--accent-soft);color:var(--accent);
-    display:flex;align-items:center;justify-content:center;
-    font-weight:700;font-size:1.05rem;font-family:Georgia,serif;
+    flex:0 0 auto;width:36px;height:36px;border-radius:9px;position:relative;
+    background:color-mix(in srgb,var(--accent) 14%,transparent);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:.95rem;font-family:Georgia,serif;
+    border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);transition:all .3s;
   }
-  .week.done .wk-num{background:var(--accent);color:#fff}
-  .wk-meta{flex:1;min-width:0}
-  .wk-title{font-weight:600;font-size:1rem;color:var(--ink)}
-  .wk-goal{font-size:.78rem;color:var(--ink-soft);margin-top:.15rem}
-  .wk-prog{font-size:.72rem;color:var(--ink-faint);margin-top:.3rem;letter-spacing:.03em}
-  .chev{flex:0 0 auto;color:var(--ink-faint);transition:transform .25s;font-size:.9rem}
-  .week.open .chev{transform:rotate(90deg)}
+  .week.done .wk-num,.wk-num.done{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06140f;border-color:transparent;box-shadow:0 0 16px rgba(46,230,166,.5)}
+  .week.done .wk-num::after,.wk-num.done::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+  .week.done .wk-num span,.wk-num.done span{opacity:0}
+  .wk-meta{flex:1;min-width:0;display:flex;flex-direction:column}
+  .wk-eyebrow{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+  .wk-title{font-weight:600;font-size:.85rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.05rem}
+  .wk-prog{font-size:.6rem;color:var(--ink-faint);margin-top:.35rem;display:flex;align-items:center;gap:.45rem}
+  .mini{flex:1;height:3px;border-radius:999px;background:var(--glass-brd);overflow:hidden}
+  .mini i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s ease}
+  .week .chev{flex:0 0 auto;color:var(--ink-faint);font-size:.8rem;transition:transform .25s,color .25s}
+  .week.active .chev{color:var(--accent);transform:translateX(2px)}
 
-  .week-body{display:none;padding:0 1.2rem 1.3rem;border-top:1px solid var(--line)}
-  .week.open .week-body{display:block}
+  /* --- right: detail panel --- */
+  .detail{
+    background:var(--glass);border:1px solid var(--glass-brd);border-radius:var(--radius);
+    box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    padding:1.8rem 2rem;
+  }
+  .detail-head{display:flex;align-items:center;gap:1rem;padding-bottom:1.2rem;border-bottom:1px solid var(--glass-brd)}
+  .detail-head .wk-num{width:54px;height:54px;font-size:1.35rem;border-radius:14px}
+  .detail-head h2{font-family:Georgia,serif;font-size:1.4rem;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+  .detail-head .dgoal{font-size:.8rem;color:var(--ink-soft);margin-top:.2rem}
+  .detail-prog{font-size:.7rem;color:var(--accent);margin-top:.5rem;font-weight:700}
+  /* fade the panel content in on switch */
+  .detail-body{animation:fadeIn .35s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .block{margin-top:1.2rem}
+  .block{margin-top:1.4rem}
   .block-label{
-    font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
-    font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem
+    font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+    font-weight:700;display:flex;align-items:center;gap:.55rem;margin-bottom:.7rem
   }
-  .block-label::before{content:"";width:14px;height:2px;background:var(--accent)}
+  .block-label::before{content:"";width:16px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),transparent)}
 
-  ul.learn{list-style:none;display:grid;gap:.3rem}
-  ul.learn li{font-size:.85rem;color:var(--ink);padding-left:1.1rem;position:relative}
-  ul.learn li::before{content:"›";position:absolute;left:0;color:var(--accent);font-weight:700}
+  ul.learn{list-style:none;display:grid;gap:.4rem}
+  ul.learn li{font-size:.85rem;color:var(--ink);padding-left:1.3rem;position:relative}
+  ul.learn li::before{content:"▹";position:absolute;left:0;color:var(--accent);font-weight:700}
 
-  .links{display:grid;gap:.45rem}
+  .links{display:grid;gap:.5rem}
   .lk{
-    display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--ink);
-    border:1px solid var(--line);border-radius:6px;padding:.55rem .75rem;background:#fff;
-    font-size:.83rem;transition:border-color .15s,background .15s
+    display:flex;align-items:center;gap:.7rem;text-decoration:none;color:var(--ink);
+    border:1px solid var(--glass-brd);border-radius:11px;padding:.65rem .85rem;
+    background:color-mix(in srgb,var(--bg-2) 50%,transparent);
+    font-size:.83rem;transition:all .2s;position:relative;overflow:hidden
   }
-  .lk:hover{border-color:var(--accent);background:var(--accent-soft)}
-  .lk .ic{flex:0 0 auto;width:20px;text-align:center;font-size:.9rem}
-  .lk.yt .ic{color:#c0392b}
-  .lk.doc .ic{color:var(--accent)}
-  .lk .arr{margin-left:auto;color:var(--ink-faint);font-size:.8rem}
+  .lk::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transform:scaleY(0);transition:transform .2s;transform-origin:center}
+  .lk:hover{border-color:var(--glass-brd-hi);transform:translateX(4px);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+  .lk:hover::before{transform:scaleY(1)}
+  .lk .ic{flex:0 0 auto;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:.85rem;background:var(--glass-brd)}
+  .lk.yt .ic{color:#ff5c6c}
+  .lk.doc .ic{color:var(--accent-2)}
+  .lk .arr{margin-left:auto;color:var(--ink-faint);font-size:.8rem;transition:transform .2s}
+  .lk:hover .arr{transform:translate(2px,-2px);color:var(--accent)}
 
   .task{
-    display:flex;align-items:flex-start;gap:.65rem;padding:.5rem .65rem;border-radius:6px;
-    cursor:pointer;font-size:.85rem;transition:background .12s
+    display:flex;align-items:flex-start;gap:.7rem;padding:.55rem .7rem;border-radius:10px;
+    cursor:pointer;font-size:.85rem;transition:background .15s;user-select:none
   }
-  .task:hover{background:#f6f3ea}
+  .task:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
   .task input{
-    appearance:none;-webkit-appearance:none;flex:0 0 auto;width:18px;height:18px;margin-top:.15rem;
-    border:1.5px solid var(--ink-faint);border-radius:4px;cursor:pointer;position:relative;background:#fff
+    appearance:none;-webkit-appearance:none;flex:0 0 auto;width:20px;height:20px;margin-top:.1rem;
+    border:1.5px solid var(--ink-faint);border-radius:6px;cursor:pointer;position:relative;background:transparent;transition:all .2s
   }
-  .task input:checked{background:var(--accent);border-color:var(--accent)}
+  .task input:hover{border-color:var(--accent)}
+  .task input:checked{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;box-shadow:0 0 10px rgba(46,230,166,.5)}
   .task input:checked::after{
-    content:"✓";position:absolute;top:-2px;left:2px;color:#fff;font-size:.8rem;font-weight:700
+    content:"✓";position:absolute;top:-1px;left:3px;color:#06140f;font-size:.85rem;font-weight:700
   }
-  .task input:checked ~ span{color:var(--ink-faint);text-decoration:line-through}
+  .task input:checked ~ span{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--accent)}
 
   .checkpoint{
-    margin-top:1.2rem;background:var(--accent-soft);border:1px solid #b9dcca;border-radius:7px;padding:.8rem .9rem
+    margin-top:1.3rem;background:color-mix(in srgb,var(--accent) 10%,transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:13px;padding:.9rem 1rem
   }
   .checkpoint .task{padding:0}
+  .checkpoint .task:hover{background:none}
   .cp-tag{font-weight:700;color:var(--accent)}
 
-  footer{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line);
-    font-size:.76rem;color:var(--ink-faint);text-align:center;line-height:1.8}
-  footer code{background:#e7e2d6;padding:.1rem .35rem;border-radius:4px;color:var(--ink-soft)}
+  footer{margin-top:3rem;padding-top:1.6rem;border-top:1px solid var(--glass-brd);
+    font-size:.76rem;color:var(--ink-faint);text-align:center;line-height:1.9}
+  footer code{background:var(--glass-brd);padding:.15rem .4rem;border-radius:5px;color:var(--ink-soft)}
 
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* confetti canvas */
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:2rem;transform:translate(-50%,150%);
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06140f;font-weight:600;
+    padding:.9rem 1.4rem;border-radius:999px;box-shadow:0 12px 40px -8px rgba(46,230,166,.6);
+    z-index:60;transition:transform .5s cubic-bezier(.2,.8,.3,1);font-size:.88rem}
+  .toast.show{transform:translate(-50%,0)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* stack: sidebar on top, content below; let the whole page scroll */
+  @media (max-width:860px){
+    .app{grid-template-columns:1fr;height:auto;overflow:visible}
+    .sidebar{height:auto;overflow:visible;border-right:none;border-bottom:1px solid var(--glass-brd)}
+    .weeklist{flex-direction:row;flex-wrap:wrap;overflow:visible}
+    .weeklist .week{flex:1 1 150px}
+    .week .chev{display:none}
+    .wk-title{white-space:normal}
+    .content{height:auto;overflow:visible;padding:1.4rem}
+  }
   @media (max-width:520px){
-    header{padding:2.5rem 0 1.5rem}
-    .week-head{gap:.75rem;padding:.9rem}
-    .wk-goal{display:none}
+    .detail{padding:1.2rem}
+    .weeklist .week{flex:1 1 100%}
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">8-week roadmap · ~2.5 hrs/day</div>
-    <h1>Becoming a <em>backend</em> developer</h1>
-    <p class="sub">From beginner Django to a deployed, tested API. One project — the Bookstore API — that grows every week. Tap a week to open it.</p>
+<div class="aurora"><i></i></div>
+<div class="grain"></div>
+<canvas id="confetti"></canvas>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span> backend.roadmap</div>
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme">
+        <span class="ti" id="themeIcon">☀️</span><span id="themeTxt">Light</span>
+      </button>
+    </div>
 
     <div class="dash">
-      <div class="dash-top">
-        <div>
-          <div class="dash-label">Progress</div>
-          <div class="dash-count"><b id="done">0</b> / <span id="total">0</span> tasks complete</div>
-        </div>
-        <button class="reset" id="reset">reset all</button>
+      <div class="ring">
+        <svg width="92" height="92" viewBox="0 0 104 104">
+          <defs>
+            <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#2ee6a6"/>
+              <stop offset=".5" stop-color="#34d0ff"/>
+              <stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="52" cy="52" r="46"/>
+          <circle class="prog" id="ringProg" cx="52" cy="52" r="46"/>
+        </svg>
+        <div class="pct"><b id="pct">0%</b><small>done</small></div>
       </div>
-      <div class="bar"><div class="bar-fill" id="fill"></div></div>
-      <div class="dash-foot" id="foot">Your progress saves automatically in this browser.</div>
+      <div class="dash-main">
+        <div class="dash-label">Your progress</div>
+        <div class="dash-count"><b id="done">0</b> / <span id="total">0</span> tasks</div>
+        <div class="bar"><div class="bar-fill" id="fill"></div></div>
+        <button class="reset" id="reset">↺ reset all</button>
+      </div>
     </div>
-  </header>
 
-  <main id="weeks"></main>
+    <div class="side-title">8-week roadmap</div>
+    <nav class="weeklist" id="weeks"></nav>
+  </aside>
 
-  <footer>
-    Built as a single file — keep it in your repo, open it anytime by double-clicking.<br>
-    Progress is stored in this browser only (<code>localStorage</code>). Clearing site data or switching browser/device starts fresh.
-  </footer>
+  <main class="content">
+    <section class="detail" id="detail"></section>
+    <footer id="foot">Your progress saves automatically in this browser.</footer>
+  </main>
 </div>
 
 <script>
@@ -224,6 +413,21 @@ const DATA=[
  check:"You can whiteboard a URL shortener end-to-end and defend every design choice."}
 ];
 
+/* ============ THEME ============ */
+const TKEY="backend_roadmap_theme";
+const root=document.documentElement;
+function applyTheme(t){
+  root.setAttribute("data-theme",t);
+  document.getElementById("themeIcon").textContent=t==="dark"?"☀️":"🌙";
+  document.getElementById("themeTxt").textContent=t==="dark"?"Light":"Dark";
+}
+try{applyTheme(localStorage.getItem(TKEY)||"dark");}catch(e){applyTheme("dark");}
+document.getElementById("themeBtn").addEventListener("click",()=>{
+  const next=root.getAttribute("data-theme")==="dark"?"light":"dark";
+  applyTheme(next);try{localStorage.setItem(TKEY,next);}catch(e){}
+});
+
+/* ============ STATE ============ */
 const KEY="backend_roadmap_v1";
 let state={};
 try{const r=localStorage.getItem(KEY);if(r)state=JSON.parse(r);}catch(e){}
@@ -233,83 +437,123 @@ function tid(w,i){return "w"+w+"_t"+i;}
 function cid(w){return "w"+w+"_check";}
 function allIds(){let a=[];DATA.forEach(d=>{d.tasks.forEach((_,i)=>a.push(tid(d.w,i)));a.push(cid(d.w));});return a;}
 function weekIds(d){let a=d.tasks.map((_,i)=>tid(d.w,i));a.push(cid(d.w));return a;}
-
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
+const RING_C=2*Math.PI*46;
+let wasComplete=false;
+
+let selected=DATA[0].w;
+
 function render(){
-  const root=document.getElementById("weeks");
-  root.innerHTML="";
-  DATA.forEach(d=>{
-    const wk=document.createElement("section");
-    wk.className="week";wk.dataset.w=d.w;
-
-    const learn=d.learn.map(x=>`<li>${esc(x)}</li>`).join("");
-    const docs=d.docs.map(x=>`<a class="lk doc" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▤</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
-    const yt=d.yt.map(x=>`<a class="lk yt" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▶</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
-    const tasks=d.tasks.map((t,i)=>{
-      const id=tid(d.w,i);const c=state[id]?"checked":"";
-      return `<label class="task"><input type="checkbox" data-id="${id}" ${c}><span>${esc(t)}</span></label>`;
-    }).join("");
-    const ccheck=state[cid(d.w)]?"checked":"";
-
+  const rootEl=document.getElementById("weeks");
+  rootEl.innerHTML="";
+  DATA.forEach((d,idx)=>{
+    const wk=document.createElement("button");
+    wk.className="week";wk.dataset.w=d.w;wk.style.animationDelay=(idx*0.06)+"s";
     wk.innerHTML=`
-      <button class="week-head" aria-expanded="false">
-        <span class="wk-num">${d.w}</span>
-        <span class="wk-meta">
-          <span class="wk-title">Week ${d.w}: ${esc(d.title)}</span>
-          <span class="wk-goal">${esc(d.goal)}</span>
-          <span class="wk-prog" data-prog="${d.w}"></span>
-        </span>
-        <span class="chev">▶</span>
-      </button>
-      <div class="week-body">
-        <div class="block"><div class="block-label">Learn</div><ul class="learn">${learn}</ul></div>
-        <div class="block"><div class="block-label">Docs &amp; reading</div><div class="links">${docs}</div></div>
-        <div class="block"><div class="block-label">Watch</div><div class="links">${yt}</div></div>
-        <div class="block"><div class="block-label">Practice — tick as you go</div><div>${tasks}</div></div>
-        <div class="checkpoint">
-          <label class="task"><input type="checkbox" data-id="${cid(d.w)}" ${ccheck}>
-          <span><span class="cp-tag">Checkpoint:</span> ${esc(d.check)}</span></label>
-        </div>
-      </div>`;
-    root.appendChild(wk);
+      <span class="wk-num"><span>${d.w}</span></span>
+      <span class="wk-meta">
+        <span class="wk-eyebrow">Week ${d.w}</span>
+        <span class="wk-title">${esc(d.title)}</span>
+        <span class="wk-prog"><span class="mini"><i data-mini="${d.w}"></i></span><span data-prog="${d.w}"></span></span>
+      </span>
+      <span class="chev">›</span>`;
+    wk.addEventListener("click",()=>selectWeek(d.w));
+    rootEl.appendChild(wk);
   });
+  selectWeek(selected,true);
+  update(true);
+}
 
-  document.querySelectorAll(".week-head").forEach(h=>{
-    h.addEventListener("click",()=>{
-      const wk=h.closest(".week");
-      const open=wk.classList.toggle("open");
-      h.setAttribute("aria-expanded",open);
-    });
-  });
-  document.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+function renderDetail(d){
+  const learn=d.learn.map(x=>`<li>${esc(x)}</li>`).join("");
+  const docs=d.docs.map(x=>`<a class="lk doc" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▤</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
+  const yt=d.yt.map(x=>`<a class="lk yt" href="${x[1]}" target="_blank" rel="noopener"><span class="ic">▶</span>${esc(x[0])}<span class="arr">↗</span></a>`).join("");
+  const tasks=d.tasks.map((t,i)=>{
+    const id=tid(d.w,i);const c=state[id]?"checked":"";
+    return `<label class="task"><input type="checkbox" data-id="${id}" ${c}><span>${esc(t)}</span></label>`;
+  }).join("");
+  const ccheck=state[cid(d.w)]?"checked":"";
+
+  const panel=document.getElementById("detail");
+  panel.innerHTML=`
+    <div class="detail-body">
+      <div class="detail-head">
+        <span class="wk-num" data-w="${d.w}"><span>${d.w}</span></span>
+        <div>
+          <h2>${esc(d.title)}</h2>
+          <div class="dgoal">${esc(d.goal)}</div>
+          <div class="detail-prog" data-dprog="${d.w}"></div>
+        </div>
+      </div>
+      <div class="block"><div class="block-label">Learn</div><ul class="learn">${learn}</ul></div>
+      <div class="block"><div class="block-label">Docs &amp; reading</div><div class="links">${docs}</div></div>
+      <div class="block"><div class="block-label">Watch</div><div class="links">${yt}</div></div>
+      <div class="block"><div class="block-label">Practice — tick as you go</div><div>${tasks}</div></div>
+      <div class="checkpoint">
+        <label class="task"><input type="checkbox" data-id="${cid(d.w)}" ${ccheck}>
+        <span><span class="cp-tag">Checkpoint:</span> ${esc(d.check)}</span></label>
+      </div>
+    </div>`;
+
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
     cb.addEventListener("change",e=>{
       const id=e.target.dataset.id;
       if(e.target.checked)state[id]=true;else delete state[id];
       save();update();
     });
   });
-  update();
 }
 
-function update(){
+function selectWeek(w,silent){
+  selected=w;
+  document.querySelectorAll(".week").forEach(el=>el.classList.toggle("active",+el.dataset.w===w));
+  renderDetail(DATA.find(d=>d.w===w));
+  update(true);
+  if(!silent){
+    const c=document.querySelector(".content");
+    if(c)c.scrollTo({top:0,behavior:"smooth"});
+    if(window.matchMedia("(max-width:860px)").matches){
+      document.getElementById("detail").scrollIntoView({behavior:"smooth",block:"start"});
+    }
+  }
+}
+
+function update(initial){
   const ids=allIds();
   const done=ids.filter(i=>state[i]).length;
+  const pct=Math.round(done/ids.length*100);
   document.getElementById("done").textContent=done;
   document.getElementById("total").textContent=ids.length;
-  document.getElementById("fill").style.width=Math.round(done/ids.length*100)+"%";
+  document.getElementById("fill").style.width=pct+"%";
+  document.getElementById("pct").textContent=pct+"%";
+  const ring=document.getElementById("ringProg");
+  ring.style.strokeDasharray=RING_C;
+  ring.style.strokeDashoffset=RING_C*(1-done/ids.length);
+
   const foot=document.getElementById("foot");
-  if(done===ids.length){foot.textContent="Every box ticked. You did the work — go build something real.";}
+  if(done===ids.length){foot.textContent="🏆 Every box ticked. You did the work — go build something real.";}
   else{foot.textContent="Your progress saves automatically in this browser.";}
 
   DATA.forEach(d=>{
     const wids=weekIds(d);
     const wd=wids.filter(i=>state[i]).length;
     const el=document.querySelector(`[data-prog="${d.w}"]`);
-    if(el)el.textContent=wd+" / "+wids.length+" done";
+    if(el)el.textContent=wd+" / "+wids.length;
+    const mini=document.querySelector(`[data-mini="${d.w}"]`);
+    if(mini)mini.style.width=Math.round(wd/wids.length*100)+"%";
     const wk=document.querySelector(`.week[data-w="${d.w}"]`);
     if(wk)wk.classList.toggle("done",wd===wids.length);
+    // detail panel (only the currently-shown week is in the DOM)
+    const dp=document.querySelector(`[data-dprog="${d.w}"]`);
+    if(dp)dp.textContent="● "+wd+" / "+wids.length+" tasks done in this week";
+    const dbadge=document.querySelector(`.detail .wk-num[data-w="${d.w}"]`);
+    if(dbadge)dbadge.classList.toggle("done",wd===wids.length);
   });
+
+  const complete=done===ids.length;
+  if(complete && !wasComplete && !initial){celebrate();}
+  wasComplete=complete;
 }
 
 document.getElementById("reset").addEventListener("click",()=>{
@@ -319,6 +563,39 @@ document.getElementById("reset").addEventListener("click",()=>{
     update();
   }
 });
+
+/* ============ CONFETTI + TOAST ============ */
+function showToast(msg){
+  const t=document.createElement("div");
+  t.className="toast";t.textContent=msg;document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add("show"));
+  setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),600);},3600);
+}
+function celebrate(){
+  showToast("🎉 Roadmap complete — you're a backend dev now!");
+  const cv=document.getElementById("confetti");
+  const ctx=cv.getContext("2d");
+  let W=cv.width=innerWidth,H=cv.height=innerHeight;
+  const colors=["#2ee6a6","#34d0ff","#a78bfa","#ffb454","#ff6b81"];
+  const P=[];
+  for(let i=0;i<160;i++){
+    P.push({x:W/2+(Math.random()-.5)*120,y:H*0.35,
+      vx:(Math.random()-.5)*11,vy:Math.random()*-13-4,
+      g:.28+Math.random()*.15,s:5+Math.random()*7,
+      c:colors[i%colors.length],r:Math.random()*6,vr:(Math.random()-.5)*.4,life:0});
+  }
+  let frames=0;
+  (function loop(){
+    frames++;ctx.clearRect(0,0,W,H);
+    P.forEach(p=>{
+      p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life++;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;
+      ctx.globalAlpha=Math.max(0,1-frames/180);
+      ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();
+    });
+    if(frames<180)requestAnimationFrame(loop);else ctx.clearRect(0,0,W,H);
+  })();
+}
 
 render();
 </script>
